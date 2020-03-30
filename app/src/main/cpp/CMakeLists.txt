@@ -5,6 +5,17 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
+# configure import libs
+set(distribution_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../distribution)
+
+# shared lib will also be tucked into APK and sent to target
+# refer to app/build.gradle, jniLibs section for that purpose.
+# ${ANDROID_ABI} is handy for our purpose here. Probably this ${ANDROID_ABI} is
+# the most valuable thing of this sample, the rest are pretty much normal cmake
+add_library(lib_aprobe SHARED IMPORTED)
+set_target_properties(lib_aprobe PROPERTIES IMPORTED_LOCATION
+    ${distribution_DIR}/aprobe/lib/${ANDROID_ABI}/libaprobe.so)
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
@@ -24,7 +35,6 @@ add_library( # Sets the name of the library.
 # default, you only need to specify the name of the public NDK library
 # you want to add. CMake verifies that the library exists before
 # completing its build.
-
 find_library( # Sets the name of the path variable.
               log-lib
 
@@ -32,13 +42,15 @@ find_library( # Sets the name of the path variable.
               # you want CMake to locate.
               log )
 
+target_include_directories(native-lib PRIVATE
+                           ${distribution_DIR}/aprobe/include)
+
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
-
 target_link_libraries( # Specifies the target library.
                        native-lib
-
+                       lib_aprobe
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )

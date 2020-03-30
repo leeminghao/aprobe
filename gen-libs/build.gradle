@@ -11,7 +11,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                version '3.10.2'
+                version '3.4.1'
 
                 // Sets optional flags for the C++ compiler.
                 cppFlags "-std=c++11"
@@ -53,3 +53,31 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
+task copyAprobeHeaders(type: Copy) {
+    delete '../distribution/aprobe/include'
+
+    description 'liminghao-> the fastcdr directory to the target directory.'
+
+    from 'src/main/cpp/libaprobe/include/aprobe/'
+    into '../distribution/aprobe/include/aprobe/'
+}
+
+task copyReleaseAprobeLibrary(type: Copy) {
+    dependsOn ':gen-libs:copyAprobeHeaders'
+    dependsOn ':gen-libs:assembleRelease'
+
+    delete '../distribution/aprobe/lib'
+
+    from 'build/intermediates/library_and_local_jars_jni/aprobe/release/'
+    into '../distribution/aprobe/lib/'
+}
+
+task copyDebugAprobeLibrary(type: Copy) {
+    dependsOn ':gen-libs:copyAprobeHeaders'
+    dependsOn ':gen-libs:assembleDebug'
+
+    delete '../distribution/aprobe/lib'
+
+    from 'build/intermediates/library_and_local_jars_jni/aprobe/debug/'
+    into '../distribution/aprobe/lib/'
+}

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2020 The Android Open Source Project
+# Copyright (C) 2020 Mingo All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,19 +14,32 @@
 # limitations under the License.
 #
 
-# Build a shared lib and copy it into distribution place for independent app to use
-# we could not delete the bin directory is because android studio would error out
-# when it checks target's existance. Only distribution place is used as import to app
-
 cmake_minimum_required(VERSION 3.4.1)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-add_library(aprobe SHARED aprobe.cpp)
+add_library(aprobe SHARED
+  aprobe_manager.cpp
+  elf_interface.cpp
+  file.cpp
+  process_map.cpp)
 
-# copy out the lib binary... need to leave the static lib around to pass gradle check
+target_include_directories(aprobe PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+find_library(log-lib log)
+
+target_link_libraries(aprobe ${log-lib})
+
+# copy out the lib binary and remove generated files
 set(distribution_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../distribution)
 set_target_properties(aprobe
                       PROPERTIES
-                      ARCHIVE_OUTPUT_DIRECTORY
+                      LIBRARY_OUTPUT_DIRECTORY
                       "${distribution_DIR}/aprobe/lib/${ANDROID_ABI}")
+
+add_custom_command(TARGET aprobe POST_BUILD
+                   COMMAND "${CMAKE_COMMAND}" -E
+                   copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/include/aprobe"
+                   "${distribution_DIR}/aprobe/include/aprobe"
+                   COMMENT "Copying aprobe to output directory")
